@@ -18,12 +18,12 @@ type App struct {
 func NewApp(ctx context.Context) (*App, error) {
 	app := &App{}
 
+	app.Version = vcs.Version()
+
 	err := app.initDeps(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	app.Version = vcs.Version()
 
 	return app, nil
 }

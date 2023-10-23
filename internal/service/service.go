@@ -10,4 +10,5 @@ type UserService interface {
 	Get(context.Context, int32) (*userModel.User, error)
 	GetWithProfile(context.Context, int32) (*userModel.User, error)
 	UpdateStatus(context.Context, *userModel.User) error
+	Authenticate(context.Context, string, string) (*userModel.User, error)
 }

@@ -21,7 +21,7 @@ func (r *repository) Insert(ctx context.Context, tx *sql.Tx, user *userModel.Use
 		INSERT INTO "quartz_user"."user" (email, password_hash, status)
 		VALUES ($1, $2, $3)
 		RETURNING id, created_at, updated_at`
-	args := []any{user.Email, user.Password.GetHash(), userModel.StatusNoActive}
+	args := []any{user.Email, user.PasswordHash, userModel.StatusNoActive}
 
 	err := tx.QueryRowContext(ctx, query, args...).
 		Scan(&user.ID, &user.CreatedAt, &user.UpdatedAt)
@@ -84,6 +84,40 @@ func (r *repository) GetWithProfile(ctx context.Context, id int32) (*userModel.U
 
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&user.ID,
+		&user.Email,
+		&user.Status,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.Profile.Firstname,
+		&user.Profile.Middlename,
+		&user.Profile.Lastname,
+		&user.Profile.PhoneNumber,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, model.ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
+func (r *repository) GetForAuth(ctx context.Context, email string) (*userModel.User, error) {
+	query := `
+		SELECT id, password_hash, email, status, created_at, updated_at, firstname, middlename, lastname, phone_number
+		FROM "quartz_user"."user"
+		LEFT JOIN quartz_user.user_profile up on "user".id = up.user_id
+		WHERE email = $1`
+
+	var user userModel.User
+
+	err := r.db.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.PasswordHash,
 		&user.Email,
 		&user.Status,
 		&user.CreatedAt,

@@ -1,14 +1,20 @@
 package request
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	userModel "frame/internal/model/user"
 	"github.com/go-chi/chi/v5"
 	"io"
 	"net/http"
 	"strconv"
 )
+
+type contextKey string
+
+const contextKeyUser = contextKey("user")
 
 func ReadJSON(w http.ResponseWriter, r *http.Request, dst any) error {
 	maxBytes := 1_048_576 // 1 MB
@@ -53,4 +59,18 @@ func ReadID32Param(r *http.Request) (int32, error) {
 	}
 
 	return int32(id), nil
+}
+
+func SetUser(r *http.Request, user *userModel.User) *http.Request {
+	ctx := context.WithValue(r.Context(), contextKeyUser, user)
+	return r.WithContext(ctx)
+}
+
+func GetUser(r *http.Request) *userModel.User {
+	user, ok := r.Context().Value(contextKeyUser).(*userModel.User)
+	if !ok {
+		panic("missing user value in request context")
+	}
+
+	return user
 }

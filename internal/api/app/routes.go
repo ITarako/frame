@@ -1,30 +1,26 @@
 package app
 
 import (
+	loginHandler "frame/internal/api/handler/auth/login"
+	logoutHandler "frame/internal/api/handler/auth/logout"
 	healthcheckHandler "frame/internal/api/handler/healthcheck"
 	userActiveHandler "frame/internal/api/handler/user/active"
 	userBanHandler "frame/internal/api/handler/user/ban"
 	userCreateHandler "frame/internal/api/handler/user/create"
 	userDeleteHandler "frame/internal/api/handler/user/delete"
 	userViewHandler "frame/internal/api/handler/user/view"
+	"frame/internal/api/middleware"
 	"frame/internal/api/response"
 	"frame/internal/lib/validator"
 	"github.com/go-chi/chi/v5"
+	chiMiddleware "github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"log/slog"
 	"net/http"
 )
 
 func (app *App) routes() http.Handler {
-
 	router := chi.NewRouter()
-
-	router.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:9000"},
-		AllowedHeaders:   []string{"*"},
-		AllowCredentials: true,
-		MaxAge:           86400,
-	}))
 
 	router.NotFound(func(logger *slog.Logger) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
@@ -38,13 +34,33 @@ func (app *App) routes() http.Handler {
 		}
 	}(app.container.Logger()))
 
+	router.Use(chiMiddleware.Recoverer)
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:9000"}, // todo from env
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+		MaxAge:           86400,
+	}))
+	router.Use(middleware.Authenticate(app.container.Session(), app.container.Logger(), app.container.UserService()))
+
+	requiredAuthenticated := middleware.RequireAuthenticated(app.container.Logger())
+
 	router.Get("/healthcheck", healthcheckHandler.New(app.container.Logger(), app.container.Config(), app.Version).Get)
 
-	router.Post("/users", userCreateHandler.New(app.container.Logger(), validator.NewValidator(), app.container.UserService()).Post)
-	router.Get("/users/{id}", userViewHandler.New(app.container.Logger(), app.container.UserService()).Get)
-	router.Put("/users/{id}/active", userActiveHandler.New(app.container.Logger(), app.container.UserService()).Put)
-	router.Put("/users/{id}/ban", userBanHandler.New(app.container.Logger(), app.container.UserService()).Put)
-	router.Delete("/users/{id}", userDeleteHandler.New(app.container.Logger(), app.container.UserService()).Delete)
+	router.Route("/auth", func(r chi.Router) {
+		r.Post("/login", loginHandler.New(app.container.Logger(), validator.NewValidator(), app.container.UserService(), app.container.Session()).Post)
+		r.With(requiredAuthenticated).Post("/logout", logoutHandler.New(app.container.Logger(), app.container.Session()).Post)
+	})
+
+	router.Route("/users", func(r chi.Router) {
+		r.Use(requiredAuthenticated)
+
+		r.Post("/", userCreateHandler.New(app.container.Logger(), validator.NewValidator(), app.container.UserService()).Post)
+		r.Get("/{id}", userViewHandler.New(app.container.Logger(), app.container.UserService()).Get)
+		r.Put("/{id}/active", userActiveHandler.New(app.container.Logger(), app.container.UserService()).Put)
+		r.Put("/{id}/ban", userBanHandler.New(app.container.Logger(), app.container.UserService()).Put)
+		r.Delete("/{id}", userDeleteHandler.New(app.container.Logger(), app.container.UserService()).Delete)
+	})
 
 	return router
 

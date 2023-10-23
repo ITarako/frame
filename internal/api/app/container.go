@@ -5,6 +5,7 @@ import (
 	"frame/internal/config"
 	"frame/internal/database"
 	"frame/internal/lib/logger"
+	"frame/internal/lib/session"
 	"frame/internal/repository"
 	userRepository "frame/internal/repository/user"
 	userProfileRepository "frame/internal/repository/user_profile"
@@ -16,6 +17,7 @@ import (
 type container struct {
 	config                *config.Config
 	logger                *slog.Logger
+	session               *session.Session
 	db                    *sql.DB
 	transactionManager    database.TransactionManager
 	userRepository        repository.UserRepository
@@ -41,6 +43,14 @@ func (c *container) Logger() *slog.Logger {
 	}
 
 	return c.logger
+}
+
+func (c *container) Session() *session.Session {
+	if c.session == nil {
+		c.session = session.NewSession()
+	}
+
+	return c.session
 }
 
 func (c *container) DB() *sql.DB {

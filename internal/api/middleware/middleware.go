@@ -1,35 +1,53 @@
 package middleware
 
 import (
+	"frame/internal/api/request"
+	"frame/internal/api/response"
+	"frame/internal/lib/session"
+	userModel "frame/internal/model/user"
+	"frame/internal/service"
+	"log/slog"
 	"net/http"
 )
 
-func EnableCORS(trustedOrigins []string) func(next http.Handler) http.Handler {
+func Authenticate(s *session.Session, logger *slog.Logger, userService service.UserService) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Add("Vary", "Origin")
-			w.Header().Add("Vary", "Access-Control-Request-Method")
+			id, err := s.GetUserID(r)
+			if err != nil {
+				response.ServerError(w, r, logger, err)
+				return
+			}
 
-			origin := r.Header.Get("Origin")
+			if id == 0 {
+				r = request.SetUser(r, userModel.GuestUser)
+				next.ServeHTTP(w, r)
+				return
+			}
 
-			if origin != "" {
-				for _, v := range trustedOrigins {
-					if origin == v {
-						w.Header().Set("Access-Control-Allow-Origin", origin)
-						w.Header().Set("Access-Control-Allow-Credentials", "true")
+			user, err := userService.Get(r.Context(), id)
+			if err != nil {
+				response.ServerError(w, r, logger, err)
+				return
+			}
 
-						if r.Method == http.MethodOptions && r.Header.Get("Access-Control-Request-Method") != "" {
-							w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, PUT, PATCH, DELETE")
-							w.Header().Set("Access-Control-Allow-Headers", "Authorization, *")
-							w.Header().Set("Access-Control-Max-Age", "86400")
+			r = request.SetUser(r, user)
 
-							w.WriteHeader(http.StatusOK)
-							return
-						}
+			next.ServeHTTP(w, r)
+		}
 
-						break
-					}
-				}
+		return http.HandlerFunc(fn)
+	}
+}
+
+func RequireAuthenticated(logger *slog.Logger) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := func(w http.ResponseWriter, r *http.Request) {
+			user := request.GetUser(r)
+
+			if user.IsGuest() {
+				response.AuthenticationRequired(w, r, logger)
+				return
 			}
 
 			next.ServeHTTP(w, r)

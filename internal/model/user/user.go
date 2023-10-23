@@ -1,15 +1,21 @@
 package userModel
 
-import "time"
+import (
+	"errors"
+	"golang.org/x/crypto/bcrypt"
+	"time"
+)
+
+var GuestUser = &User{}
 
 type User struct {
-	ID        int32
-	Email     string
-	Password  password
-	Status    Status
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	Profile   Profile
+	ID           int32
+	Email        string
+	PasswordHash []byte
+	Status       Status
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Profile      Profile
 }
 
 type Profile struct {
@@ -44,4 +50,33 @@ func (s Status) String() string {
 	}
 
 	return str
+}
+
+func (u *User) SetPassword(plaintextPassword string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(plaintextPassword), 12)
+	if err != nil {
+		return err
+	}
+
+	u.PasswordHash = hash
+
+	return nil
+}
+
+func (u *User) MatchPassword(plaintextPassword string) (bool, error) {
+	err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(plaintextPassword))
+	if err != nil {
+		switch {
+		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+			return false, nil
+		default:
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+func (u *User) IsGuest() bool {
+	return u == GuestUser
 }
