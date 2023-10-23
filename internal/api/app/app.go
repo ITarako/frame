@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
+	"frame/internal/config"
 	"frame/internal/lib/vcs"
 	"net/http"
 	"sync"
@@ -38,6 +39,7 @@ func (app *App) DB() *sql.DB {
 
 func (app *App) initDeps(ctx context.Context) error {
 	inits := []func(context.Context) error{
+		app.initConfig,
 		app.initContainer,
 		app.initServer,
 	}
@@ -47,6 +49,15 @@ func (app *App) initDeps(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (app *App) initConfig(_ context.Context) error {
+	err := config.Load()
+	if err != nil {
+		return err
 	}
 
 	return nil

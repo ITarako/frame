@@ -9,13 +9,13 @@ import (
 
 type Handler struct {
 	logger  *slog.Logger
-	config  *config.Config
+	config  *config.ProjectConfig
 	version string
 }
 
 func New(
 	logger *slog.Logger,
-	config *config.Config,
+	config *config.ProjectConfig,
 	version string,
 ) *Handler {
 	return &Handler{
@@ -29,7 +29,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	envelope := response.Envelope{
 		"status": "available",
 		"system_info": map[string]string{
-			"environment": h.config.Project.Env,
+			"environment": h.config.Env,
 			"version":     h.version,
 		},
 	}

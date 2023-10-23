@@ -45,7 +45,7 @@ func (app *App) routes() http.Handler {
 
 	requiredAuthenticated := middleware.RequireAuthenticated(app.container.Logger())
 
-	router.Get("/healthcheck", healthcheckHandler.New(app.container.Logger(), app.container.Config(), app.Version).Get)
+	router.Get("/healthcheck", healthcheckHandler.New(app.container.Logger(), app.container.ProjectConfig(), app.Version).Get)
 
 	router.Route("/auth", func(r chi.Router) {
 		r.Post("/login", loginHandler.New(app.container.Logger(), validator.NewValidator(), app.container.UserService(), app.container.Session()).Post)

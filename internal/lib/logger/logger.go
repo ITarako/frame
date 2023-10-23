@@ -6,10 +6,10 @@ import (
 	"os"
 )
 
-func NewLogger(cfg *config.Config) *slog.Logger {
+func NewLogger(cfg *config.ProjectConfig) *slog.Logger {
 	var log *slog.Logger
 
-	switch cfg.Project.Env {
+	switch cfg.Env {
 	case config.EnvLocal:
 		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	case config.EnvTest:

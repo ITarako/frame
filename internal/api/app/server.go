@@ -15,12 +15,12 @@ import (
 func (app *App) initServer(_ context.Context) error {
 
 	app.server = &http.Server{
-		Addr:         fmt.Sprintf(":%d", app.container.Config().Server.Port),
+		Addr:         fmt.Sprintf(":%d", app.container.APIServerConfig().Port),
 		Handler:      app.routes(),
 		ErrorLog:     slog.NewLogLogger(app.container.Logger().Handler(), slog.LevelError),
-		IdleTimeout:  time.Duration(app.container.Config().Server.IdleTimeout) * time.Second,
-		ReadTimeout:  time.Duration(app.container.Config().Server.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(app.container.Config().Server.WriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(app.container.APIServerConfig().IdleTimeout) * time.Second,
+		ReadTimeout:  time.Duration(app.container.APIServerConfig().ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(app.container.APIServerConfig().WriteTimeout) * time.Second,
 	}
 
 	return nil
@@ -52,7 +52,7 @@ func (app *App) runServer() error {
 
 	app.container.Logger().Info("starting server",
 		"addr", app.server.Addr,
-		"env", app.container.Config().Project.Env,
+		"env", app.container.ProjectConfig().Env,
 	)
 
 	err := app.server.ListenAndServe()

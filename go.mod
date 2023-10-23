@@ -3,13 +3,14 @@ module frame
 go 1.21.0
 
 require (
+	github.com/caarlos0/env/v9 v9.0.0
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
 	github.com/go-playground/validator/v10 v10.15.4
 	github.com/gorilla/sessions v1.2.1
+	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	golang.org/x/crypto v0.13.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

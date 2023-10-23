@@ -10,15 +10,15 @@ import (
 	"time"
 )
 
-func NewPostgres(cfg *config.Config) *sql.DB {
+func NewPostgres(cfg *config.DBConfig) *sql.DB {
 	dsn := fmt.Sprintf(
 		"user=%s password=%s host=%s port=%s dbname=%s sslmode=%s",
-		cfg.Database.User,
-		cfg.Database.Password,
-		cfg.Database.Host,
-		cfg.Database.Port,
-		cfg.Database.Name,
-		cfg.Database.SslMode,
+		cfg.User,
+		cfg.Password,
+		cfg.Host,
+		cfg.Port,
+		cfg.Name,
+		cfg.SslMode,
 	)
 
 	db, err := sql.Open("postgres", dsn)
@@ -26,10 +26,10 @@ func NewPostgres(cfg *config.Config) *sql.DB {
 		log.Fatalf("sql open: %s", err)
 	}
 
-	db.SetMaxOpenConns(cfg.Database.MaxOpenConns)
-	db.SetMaxIdleConns(cfg.Database.MaxIdleConns)
+	db.SetMaxOpenConns(cfg.MaxOpenConns)
+	db.SetMaxIdleConns(cfg.MaxIdleConns)
 
-	duration, err := time.ParseDuration(cfg.Database.MaxIdleTime)
+	duration, err := time.ParseDuration(cfg.MaxIdleTime)
 	if err != nil {
 		log.Fatalf("parse MaxIdleTime: %s", err)
 	}

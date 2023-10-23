@@ -11,11 +11,14 @@ import (
 	userProfileRepository "frame/internal/repository/user_profile"
 	"frame/internal/service"
 	userService "frame/internal/service/user"
+	"log"
 	"log/slog"
 )
 
 type container struct {
-	config                *config.Config
+	projectConfig         *config.ProjectConfig
+	apiServerConfig       *config.APIServerConfig
+	dbConfig              *config.DBConfig
 	logger                *slog.Logger
 	session               *session.Session
 	db                    *sql.DB
@@ -29,17 +32,45 @@ func newContainer() *container {
 	return &container{}
 }
 
-func (c *container) Config() *config.Config {
-	if c.config == nil {
-		c.config = config.Parse()
+func (c *container) ProjectConfig() *config.ProjectConfig {
+	if c.projectConfig == nil {
+		cfg, err := config.NewProjectConfig()
+		if err != nil {
+			log.Fatalf("failed to get project config: %s", err)
+		}
+		c.projectConfig = cfg
 	}
 
-	return c.config
+	return c.projectConfig
+}
+
+func (c *container) APIServerConfig() *config.APIServerConfig {
+	if c.apiServerConfig == nil {
+		cfg, err := config.NewAPIServerConfig()
+		if err != nil {
+			log.Fatalf("failed to get API server config: %s", err)
+		}
+		c.apiServerConfig = cfg
+	}
+
+	return c.apiServerConfig
+}
+
+func (c *container) DBConfig() *config.DBConfig {
+	if c.dbConfig == nil {
+		cfg, err := config.NewDBConfig()
+		if err != nil {
+			log.Fatalf("failed to get db config: %s", err)
+		}
+		c.dbConfig = cfg
+	}
+
+	return c.dbConfig
 }
 
 func (c *container) Logger() *slog.Logger {
 	if c.logger == nil {
-		c.logger = logger.NewLogger(c.Config())
+		c.logger = logger.NewLogger(c.ProjectConfig())
 	}
 
 	return c.logger
@@ -55,7 +86,7 @@ func (c *container) Session() *session.Session {
 
 func (c *container) DB() *sql.DB {
 	if c.db == nil {
-		c.db = database.NewPostgres(c.Config())
+		c.db = database.NewPostgres(c.DBConfig())
 		c.Logger().Info("database connection pull established")
 	}
 
