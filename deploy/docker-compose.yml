@@ -2,9 +2,7 @@ version: "3"
 
 services:
   api:
-    build:
-      context: ..
-      dockerfile: Dockerfile
+    image: baseapp_api
     container_name: api
     restart: always
     depends_on:

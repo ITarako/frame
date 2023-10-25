@@ -1,6 +1,5 @@
 FROM golang:1.21-alpine AS builder
 
-RUN #apk add --update make git curl
 RUN apk add --update make
 
 ENV CGO_ENABLED 0
