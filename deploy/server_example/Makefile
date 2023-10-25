@@ -1,6 +1,6 @@
 include .env
 
-build: git-pull check-env migrate-up docker-up
+build: git-pull check-env migrate-up build-image docker-up
 
 git-pull:
 	docker run -it --rm -v="${SSH_KEYS}:/root/.ssh" -v="${PROJECT_DIR}:/opt/project" --add-host=${GITLAB_HOST} ${DOCKER_ID}/git git clone ${PROJECT_REPO} /opt/project
