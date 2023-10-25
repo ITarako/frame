@@ -9,9 +9,9 @@ git-pull:
 
 check-env:
 ifeq ($(wildcard ${PROJECT_DIR}/.env),)
-		cp ${PROJECT_DIR}/.env.example ${PROJECT_DIR}/.env
-		@echo "Заполните ${PROJECT_DIR}/.env"
-		exit 1
+	cp ${PROJECT_DIR}/.env.example ${PROJECT_DIR}/.env
+	@echo "Заполните ${PROJECT_DIR}/.env"
+	exit 1
 endif
 
 build-image:
