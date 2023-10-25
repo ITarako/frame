@@ -13,7 +13,7 @@ type DBConfig struct {
 	MaxOpenConns int    `env:"POSTGRES_MAX_OPEN_CONNS"`
 	MaxIdleConns int    `env:"POSTGRES_MAX_IDLE_CONNS"`
 	MaxIdleTime  string `env:"POSTGRES_MAX_IDLE_TIME"`
-	SslMode      string `env:"POSTGRES_SSL_MODE"`
+	SslMode      string `env:"POSTGRES_SSLMODE"`
 }
 
 func NewDBConfig() (*DBConfig, error) {
