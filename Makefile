@@ -6,7 +6,6 @@ run-api:
 build-api:
 	@echo 'Building cmd/api...'
 	go build -ldflags='-s' -o=./bin/api ./cmd/api
-	GOOS=linux GOARCH=amd64 go build -ldflags='-s' -o=./bin/linux_amd64/api ./cmd/api
 
 migration-create:
 	@echo 'Creating migration file for ${name}'
@@ -14,15 +13,15 @@ migration-create:
 
 migration-up:
 	@echo 'Up migrations'
-	migrate -path=./migrations -database=${PROJECT_DB_DSN} -verbose up
+	migrate -path=./migrations -database=${DB_DSN} -verbose up
 
 migration-down:
 	@echo 'Down migrations ${count}'
-	migrate -path=./migrations -database=${PROJECT_DB_DSN} -verbose down ${count}
+	migrate -path=./migrations -database=${DB_DSN} -verbose down ${count}
 
 migration-fix:
 	@echo 'Fix migrations of version ${version}'
-	migrate -path=./migrations -database=${PROJECT_DB_DSN} force ${version}
+	migrate -path=./migrations -database=${DB_DSN} force ${version}
 
 audit:
 	@echo 'Tidying and verifying module dependencies...'
