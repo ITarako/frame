@@ -7,10 +7,10 @@ ENV CGO_ENABLED 0
 
 WORKDIR /build
 
-ADD ../go.mod ../go.sum ./
+ADD go.mod go.sum ./
 RUN go mod download
 
-COPY ../. ./
+COPY . .
 RUN make build-api
 
 # API Server

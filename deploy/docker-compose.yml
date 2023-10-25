@@ -3,7 +3,7 @@ version: "3"
 services:
   api:
     build:
-      context: .
+      context: ..
       dockerfile: Dockerfile
     container_name: api
     restart: always
@@ -31,14 +31,7 @@ services:
     profiles: [ "build" ]
     volumes:
       - ../migrations:/migrations
-    entrypoint:
-      [
-        "migrate",
-        "-path",
-        "/migrations",
-        "-database",
-        "$${DB_DSN}",
-      ]
+    entrypoint: migrate -path ./migrations -database ${DB_DSN}
     command: [ "up" ]
     depends_on:
       - postgres
