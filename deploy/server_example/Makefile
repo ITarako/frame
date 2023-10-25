@@ -8,11 +8,11 @@ git-pull:
 	docker run -it --rm -v="${SSH_KEYS}:/root/.ssh" -v="${PROJECT_DIR}:/opt/project" --add-host=${GITLAB_HOST} -w /opt/project ${DOCKER_ID}/git git pull origin ${PROJECT_BRANCH}
 
 check-env:
-	if [ ! -e ${PROJECT_DIR}/.env ]; then \
-		cp ${PROJECT_DIR}/.env.example ${PROJECT_DIR}/.env \
-		echo "Заполните ${PROJECT_DIR}/.env" \
-		exit 0 \
-	fi
+ifeq ($(wildcard ${PROJECT_DIR}/.env),)
+		cp ${PROJECT_DIR}/.env.example ${PROJECT_DIR}/.env
+		@echo "Заполните ${PROJECT_DIR}/.env"
+		exit 1
+endif
 
 build-image:
 	docker build --tag=baseapp_api ${PROJECT_DIR}
