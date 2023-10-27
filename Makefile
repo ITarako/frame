@@ -1,4 +1,5 @@
 include .env
+MOCKERY_PATH:=$(shell pwd)/bin/
 
 run-api:
 	go run ./cmd/api
@@ -7,21 +8,21 @@ build-api:
 	@echo 'Building cmd/api...'
 	go build -ldflags='-s' -o=./bin/api ./cmd/api
 
-migration-create:
+migrate-create:
 	@echo 'Creating migration file for ${name}'
-	migrate create -seq -ext=.sql -dir=./migrations ${name}
+	./bin/tools/migrate create -seq -ext=.sql -dir=./migrations ${name}
 
-migration-up:
+migrate-up:
 	@echo 'Up migrations'
-	migrate -path=./migrations -database=${DB_DSN} -verbose up
+	./bin/tools/migrate -path=./migrations -database=${DB_DSN} -verbose up
 
-migration-down:
+migrate-down:
 	@echo 'Down migrations ${count}'
-	migrate -path=./migrations -database=${DB_DSN} -verbose down ${count}
+	./bin/tools/migrate -path=./migrations -database=${DB_DSN} -verbose down ${count}
 
-migration-fix:
+migrate-fix:
 	@echo 'Fix migrations of version ${version}'
-	migrate -path=./migrations -database=${DB_DSN} force ${version}
+	./bin/tools/migrate -path=./migrations -database=${DB_DSN} force ${version}
 
 audit:
 	@echo 'Tidying and verifying module dependencies...'
@@ -34,3 +35,12 @@ audit:
 	staticcheck ./...
 	@echo 'Running tests...'
 	go test -race -count=1 -vet=off ./...
+
+gen:
+	go generate ./interal/...
+
+gen-tools:
+	go generate ./tools/tools.go
+
+test:
+	@echo '${MOCKERY_PATH}'
